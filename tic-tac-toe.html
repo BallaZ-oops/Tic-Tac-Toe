@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tic Tac Toe</title>
+<style>
+  :root {
+    --bg: #1e1e2f;
+    --cell: #2a2a3d;
+    --cell-hover: #34344a;
+    --accent-x: #4fc3f7;
+    --accent-o: #ff8a65;
+    --text: #f5f5f5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: var(--text);
+  }
+  h1 { margin-bottom: 4px; letter-spacing: 2px; }
+  #status { margin-bottom: 16px; font-size: 1.1em; min-height: 1.4em; }
+  #board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 8px;
+  }
+  .cell {
+    background: var(--cell);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+    user-select: none;
+  }
+  .cell:hover { background: var(--cell-hover); }
+  .cell.taken { cursor: default; }
+  .cell.x { color: var(--accent-x); }
+  .cell.o { color: var(--accent-o); }
+  .cell.win { animation: pulse 0.6s ease infinite alternate; }
+  @keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.06); }
+  }
+  #reset {
+    margin-top: 20px;
+    padding: 10px 24px;
+    font-size: 1em;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent-x);
+    color: #1e1e2f;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+  #reset:hover { opacity: 0.85; }
+</style>
+</head>
+<body>
+
+<h1>Tic Tac Toe</h1>
+<div id="status">Player X's turn</div>
+<div id="board"></div>
+<button id="reset">Restart</button>
+
+<script>
+  const boardEl = document.getElementById('board');
+  const statusEl = document.getElementById('status');
+  const resetBtn = document.getElementById('reset');
+
+  let board = Array(9).fill(null);
+  let currentPlayer = 'X';
+  let gameOver = false;
+
+  const WIN_LINES = [
+    [0,1,2],[3,4,5],[6,7,8], // rows
+    [0,3,6],[1,4,7],[2,5,8], // cols
+    [0,4,8],[2,4,6]          // diagonals
+  ];
+
+  function createBoard() {
+    boardEl.innerHTML = '';
+    board.forEach((value, index) => {
+      const cell = document.createElement('div');
+      cell.classList.add('cell');
+      if (value) cell.classList.add('taken', value.toLowerCase());
+      cell.textContent = value || '';
+      cell.dataset.index = index;
+      cell.addEventListener('click', () => handleMove(index));
+      boardEl.appendChild(cell);
+    });
+  }
+
+  function handleMove(index) {
+    if (gameOver || board[index]) return;
+
+    board[index] = currentPlayer;
+    createBoard();
+
+    const winLine = getWinLine();
+    if (winLine) {
+      highlightWin(winLine);
+      statusEl.textContent = `Player ${currentPlayer} wins!`;
+      gameOver = true;
+      return;
+    }
+
+    if (board.every(cell => cell)) {
+      statusEl.textContent = "It's a draw!";
+      gameOver = true;
+      return;
+    }
+
+    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    statusEl.textContent = `Player ${currentPlayer}'s turn`;
+  }
+
+  function getWinLine() {
+    return WIN_LINES.find(([a, b, c]) =>
+      board[a] && board[a] === board[b] && board[a] === board[c]
+    );
+  }
+
+  function highlightWin(line) {
+    line.forEach(i => {
+      boardEl.children[i].classList.add('win');
+    });
+  }
+
+  function resetGame() {
+    board = Array(9).fill(null);
+    currentPlayer = 'X';
+    gameOver = false;
+    statusEl.textContent = "Player X's turn";
+    createBoard();
+  }
+
+  resetBtn.addEventListener('click', resetGame);
+
+  createBoard();
+</script>
+
+</body>
+</html>
